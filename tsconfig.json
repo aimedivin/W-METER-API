@@ -2,8 +2,14 @@
   "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "allowJs": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "eslint.config.mjs"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
