@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import router from './routes';
+import errorHandler from './middlewares/errorHandler';
 
 const app: Application = express();
 
@@ -13,5 +14,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes to handle All request
 app.use(router);
+
+// Middleware for handling Error
+app.use(errorHandler);
 
 export default app;

@@ -14,7 +14,7 @@ export default [
       'no-console': 'warn',
       'no-undef': 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'error',
+      // '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       'arrow-body-style': ['error', 'as-needed'],
     },

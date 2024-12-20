@@ -1,6 +1,11 @@
 import { Model, model, Schema, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 
+export enum IdDocType {
+  ID_CARD = 'ID_CARD',
+  PASSPORT = 'PASSPORT',
+}
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
@@ -20,8 +25,13 @@ export interface IUser {
     email: string;
     alerts: boolean;
   };
-  password: string;
+  password?: string;
+  pin?: string;
   role: UserRole;
+  idDoc: {
+    docType: IdDocType;
+    docNumber: string;
+  };
   status: {
     status: UserStatus;
     reason?: string;
@@ -51,7 +61,6 @@ const userSchema = new Schema<IUser, UserModelType>(
         index: true,
         unique: true,
         immutable: true,
-        required: true,
       },
       alerts: {
         type: Boolean,
@@ -60,7 +69,15 @@ const userSchema = new Schema<IUser, UserModelType>(
     }),
     password: {
       type: String,
-      required: true,
+      required: function (this: IUser): boolean {
+        return !this.pin;
+      },
+    },
+    pin: {
+      type: String,
+      required: function (this: IUser): boolean {
+        return !this.password;
+      },
     },
     role: {
       type: String,
@@ -78,12 +95,29 @@ const userSchema = new Schema<IUser, UserModelType>(
           values: Object.values(UserStatus),
           message: '{VALUE} is not supported',
         },
+        default: UserStatus.PENDING,
       },
       reason: String,
+    }),
+    idDoc: new Schema<IUser['idDoc'], Model<IUser['idDoc']>>({
+      docType: {
+        type: String,
+        enum: {
+          values: Object.values(IdDocType),
+          message: '{VALUE} is not supported',
+        },
+        required: true,
+      },
+      docNumber: {
+        type: String,
+        required: true,
+      },
     }),
     telephone: new Schema<IUser['telephone']>({
       phoneNumber: {
         type: String,
+        index: true,
+        unique: true,
         required: true,
       },
       verified: {
@@ -105,7 +139,6 @@ const userSchema = new Schema<IUser, UserModelType>(
     },
     twoFAToken: {
       type: String,
-      required: true,
     },
     volume: {
       type: Number,
@@ -122,7 +155,10 @@ userSchema.methods.comparePassword = async function (
 };
 
 userSchema.pre('save', async function (next) {
-  this.password = await bcrypt.hash(this.password || '', 12);
+  this[this.password ? 'password' : 'pin'] = await bcrypt.hash(
+    this.password || this.pin || '',
+    12,
+  );
   return next();
 });
 

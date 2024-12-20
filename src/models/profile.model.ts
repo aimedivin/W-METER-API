@@ -7,7 +7,6 @@ interface IProfile {
   lastName: string;
   photo: string;
   dob: Date;
-  idCardNumber: string;
   address?: {
     streetNumber: string;
     province: string;
@@ -34,10 +33,6 @@ const profileSchema = new Schema<IProfile, ProfileModelType>(
     photo: String,
     dob: {
       type: Date,
-      required: true,
-    },
-    idCardNumber: {
-      type: String,
       required: true,
     },
     address: new Schema<IProfile['address'], Model<IProfile['address']>>({
