@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { successResponse } from '../utils/responses';
+import userRoutes from './user.route';
 
 const router = Router();
 
-// API Health check route
+// Endpoint for Health check
 router.get('/', (req: Request, res: Response) => {
   successResponse(
     res,
@@ -13,5 +14,8 @@ router.get('/', (req: Request, res: Response) => {
   );
   return;
 });
+
+// Routes to handle user related requests
+router.use('/user', userRoutes);
 
 export default router;

@@ -20,8 +20,10 @@ export interface IUser {
     email: string;
     alerts: boolean;
   };
-  password: string;
+  password?: string;
+  pin?: string;
   role: UserRole;
+  idCardNumber: string;
   status: {
     status: UserStatus;
     reason?: string;
@@ -51,7 +53,6 @@ const userSchema = new Schema<IUser, UserModelType>(
         index: true,
         unique: true,
         immutable: true,
-        required: true,
       },
       alerts: {
         type: Boolean,
@@ -60,7 +61,15 @@ const userSchema = new Schema<IUser, UserModelType>(
     }),
     password: {
       type: String,
-      required: true,
+      required: function (this: IUser): boolean {
+        return !this.pin;
+      },
+    },
+    pin: {
+      type: String,
+      required: function (this: IUser): boolean {
+        return !this.password;
+      },
     },
     role: {
       type: String,
@@ -78,12 +87,19 @@ const userSchema = new Schema<IUser, UserModelType>(
           values: Object.values(UserStatus),
           message: '{VALUE} is not supported',
         },
+        default: UserStatus.PENDING,
       },
       reason: String,
     }),
+    idCardNumber: {
+      type: String,
+      required: true,
+    },
     telephone: new Schema<IUser['telephone']>({
       phoneNumber: {
         type: String,
+        index: true,
+        unique: true,
         required: true,
       },
       verified: {
@@ -105,7 +121,6 @@ const userSchema = new Schema<IUser, UserModelType>(
     },
     twoFAToken: {
       type: String,
-      required: true,
     },
     volume: {
       type: Number,

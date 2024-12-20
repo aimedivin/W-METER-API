@@ -1,10 +1,11 @@
 import { Response } from 'express';
+import Joi from 'joi';
 
 // Custom predefined API response format
 interface IErrorDetail {
   message: string;
   field?: string | unknown;
-  stack?: string;
+  stack?: unknown;
 }
 
 export const successResponse = (
@@ -30,14 +31,22 @@ export const errorResponse = (
   };
 
   if (process.env.NODE_ENV === 'development') {
-    if (Array.isArray(errors)) {
+    if (Joi.isError(errors)) {
+      errorDetails = errors.details.map((error) => ({
+        field: error.path.join(', ') || 'unknown',
+        message: error.message || 'Invalid input',
+      }));
+    } else if (Array.isArray(errors)) {
+      console.log('in');
       errorDetails = errors.map((error) => ({
         field: error.field || 'unknown',
         message: error.msg || error.message || 'Invalid input',
       }));
-    }
-    if (errors instanceof Error) {
-      errorDetails = { message: errors.message, stack: errors.stack };
+    } else if (errors instanceof Error) {
+      errorDetails = {
+        message: errors.message,
+        stack: (errors as any).errors || errors.stack,
+      };
     }
   }
 
