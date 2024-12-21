@@ -2,32 +2,52 @@ import User from '../../models/user.model';
 import { AppError, ErrorCodes } from '../../utils/errors';
 
 interface IUserInput {
+  email?: {
+    email: string;
+    alert: boolean;
+  };
   pin?: string;
   password?: string;
   phoneNumber: string;
+  identificationDoc: {
+    docType: string;
+    docNumber: string;
+  };
 }
 
 export const createNewUser = async ({
+  email,
   phoneNumber,
   password,
   pin,
+  identificationDoc,
 }: IUserInput) => {
   const existingUser = await User.findOne({
-    'telephone.phoneNumber': phoneNumber,
+    $or: [
+      { 'telephone.phoneNumber': phoneNumber },
+      { 'email.email': email?.email },
+      { 'idDoc.docNumber': identificationDoc.docNumber },
+    ],
   });
-  if (!existingUser) {
+  if (existingUser) {
     throw new AppError(
-      'A user with this phone number already exists',
+      'User with provided details already exists.',
       409,
       true,
-      ErrorCodes.CONFLICT_ERROR,
-      { phoneNumber },
+      ErrorCodes.DATA_CONFLICT,
+      {},
     );
   }
   const newUser = await User.create({
     'telephone.phoneNumber': phoneNumber,
+    email: email,
     pin,
     password,
+    idDoc: identificationDoc,
+    volume: 0,
   });
-  return newUser;
+  const sanitizedUserInfo = newUser.toObject();
+  delete sanitizedUserInfo.password;
+  delete sanitizedUserInfo.pin;
+  return sanitizedUserInfo;
 };

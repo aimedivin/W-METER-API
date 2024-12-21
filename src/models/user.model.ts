@@ -81,11 +81,11 @@ const userSchema = new Schema<IUser, UserModelType>(
     },
     role: {
       type: String,
-      required: true,
       enum: {
         values: Object.values(UserRole),
         message: '{VALUE} is not supported',
       },
+      default: UserRole.SUBSCRIBER,
     },
     status: new Schema<IUser['status'], Model<IUser['status']>>({
       status: {
@@ -135,7 +135,7 @@ const userSchema = new Schema<IUser, UserModelType>(
     },
     twoFAEnabled: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     twoFAToken: {
       type: String,

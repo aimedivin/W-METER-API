@@ -13,18 +13,17 @@ const errorHandler = (
 ): void => {
   let customError = err;
 
-  // Mongoose validation errors
+  // Mongoose errors
+
   if (err instanceof mongoose.Error.ValidationError) {
     customError = new AppError(
       err.message,
-      400,
+      420,
       true,
-      ErrorCodes.CONFLICT_ERROR,
+      ErrorCodes.DATA_CONFLICT,
       err.errors,
     );
   }
-
-  // Mongoose cast errors
   if (err instanceof mongoose.Error.CastError) {
     customError = new AppError(
       `Invalid ${err.path}: ${err.value}`,
@@ -33,6 +32,9 @@ const errorHandler = (
       ErrorCodes.INVALID_INPUT,
     );
   }
+  if (err.name === 'MongoServerError') {
+    customError = new AppError(err.message, 400, true, ErrorCodes.DATABASE);
+  }
 
   if (Joi.isError(err)) {
     const errorDetails = err.details.map((error) => ({
@@ -40,7 +42,7 @@ const errorHandler = (
       message: error.message || 'Invalid input',
     }));
     customError = new AppError(
-      err.message || 'Validation Error',
+      'Validation Error: Please ensure your input is correct.',
       400,
       true,
       ErrorCodes.INVALID_INPUT,

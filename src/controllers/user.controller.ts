@@ -9,12 +9,11 @@ export const postUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { error } = postUserSchema.validate(req.body);
-
+    const { error } = postUserSchema.validate(req.body, { abortEarly: false });
     if (error) throw error;
 
     const user = await createNewUser(req.body);
-    successResponse(res, { user }, 201);
+    successResponse(res, { user }, 201, 'User was successfully registered');
     return;
   } catch (error) {
     return next(error);
