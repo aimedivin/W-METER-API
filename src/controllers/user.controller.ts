@@ -12,8 +12,16 @@ export const postUser = async (
     const { error } = postUserSchema.validate(req.body, { abortEarly: false });
     if (error) throw error;
 
-    const user = await createNewUser(req.body);
-    successResponse(res, { user }, 201, 'User was successfully registered');
+    const { sanitizedUserInfo, statusCode, message, details } =
+      await createNewUser(req.body);
+
+    successResponse(
+      res,
+      { user: sanitizedUserInfo },
+      statusCode,
+      message,
+      details,
+    );
     return;
   } catch (error) {
     return next(error);

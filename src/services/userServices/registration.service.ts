@@ -1,5 +1,8 @@
+import jwt from 'jsonwebtoken';
 import User from '../../models/user.model';
 import { AppError, ErrorCodes } from '../../utils/errors';
+import generateOTP from '../../utils/generateOTP';
+import sendSms from '../../utils/sendSms';
 
 interface IUserInput {
   email?: {
@@ -38,16 +41,54 @@ export const createNewUser = async ({
       {},
     );
   }
+
+  const otp = generateOTP();
+  const jwtSecret = process.env.JWT_SECRET;
+  const twoFAToken = jwt.sign({ otp }, jwtSecret!, { expiresIn: '30m' });
+
   const newUser = await User.create({
     'telephone.phoneNumber': phoneNumber,
     email: email,
     pin,
     password,
     idDoc: identificationDoc,
+    twoFAToken,
     volume: 0,
   });
+
+  const smsError = await sendSms(
+    `+25${newUser.telephone.phoneNumber}`,
+    `${process.env.BRAND_NAME || ''}, OTP: ${otp}. Expires in 30 minutes.`,
+  );
+
+  let message = 'User created successfully.';
+  let statusCode = 201;
+  let details:
+    | Array<{ operation: string; status: string; message: string }>
+    | undefined;
+
+  if (smsError) {
+    statusCode = 207;
+    message =
+      'User created successfully, but failed to send OTP to the provided phone number.';
+    details = [
+      {
+        operation: 'user_creation',
+        status: 'success',
+        message: 'User created successfully.',
+      },
+      {
+        operation: 'send_otp',
+        status: 'failure',
+        message:
+          (smsError as Error).message ||
+          'Failed to send OTP to the provided phone number.',
+      },
+    ];
+  }
+
   const sanitizedUserInfo = newUser.toObject();
   delete sanitizedUserInfo.password;
   delete sanitizedUserInfo.pin;
-  return sanitizedUserInfo;
+  return { sanitizedUserInfo, statusCode, message, details };
 };

@@ -13,7 +13,14 @@ export const postUserSchema = Joi.object({
   password: Joi.string().min(8).messages({
     'string.min': 'Password must be at least 8 characters long.',
   }),
-  phoneNumber: Joi.string().length(10).required(),
+  phoneNumber: Joi.string()
+    .length(10)
+    .pattern(/^(079|078|072|073)\d{7}$/)
+    .required()
+    .messages({
+      'string.pattern.base':
+        'The input must be a 10-digit number starting with 079, 078, 072, or 073.',
+    }),
   identificationDoc: Joi.object({
     docType: Joi.string()
       .valid(...Object.values(IdDocType))

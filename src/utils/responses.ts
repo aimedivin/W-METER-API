@@ -8,10 +8,12 @@ export const successResponse = (
   data: Record<string, object> | undefined,
   statusCode: number,
   message?: string,
+  details?: unknown,
 ): Response =>
   res.status(statusCode).json({
-    status: 'success',
+    status: statusCode === 207 ? 'multi_status' : 'success',
     message,
+    details,
     data,
   });
 
