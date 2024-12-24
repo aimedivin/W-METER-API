@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { IdDocType } from '../models/user.model';
 
-export const postUserSchema = Joi.object({
+export const postRegisterUserSchema = Joi.object({
   email: Joi.object({
     email: Joi.string().email(),
     alert: Joi.boolean(),
@@ -28,6 +28,31 @@ export const postUserSchema = Joi.object({
     docNumber: Joi.string().length(16).required(),
   }).required(),
 })
+  .xor('pin', 'password')
+  .messages({
+    'object.xor': 'Either pin or password must be provided, but not both.',
+  });
+
+export const postLoginUserSchema = Joi.object({
+  email: Joi.string().email().required,
+  phoneNumber: Joi.string()
+    .pattern(/^(079|078|072|073)\d{7}$/)
+    .messages({
+      'string.pattern.base':
+        'The input must be a 10-digit number starting with 079, 078, 072, or 073.',
+    })
+    .required(),
+  pin: Joi.string().length(4).pattern(/\d+$/).required().messages({
+    'string.length': 'Pin must be exactly 4 digits.',
+  }),
+  password: Joi.string().min(8).max(25).required().messages({
+    'string.min': 'Password must be at least 8 characters long.',
+  }),
+})
+  .xor('email', 'phoneNumber')
+  .messages({
+    'object.xor': 'email pin or phoneNumber must be provided, but not both.',
+  })
   .xor('pin', 'password')
   .messages({
     'object.xor': 'Either pin or password must be provided, but not both.',
