@@ -21,7 +21,7 @@ export enum UserStatus {
 }
 
 export interface IUser {
-  email: {
+  email?: {
     email: string;
     alerts: boolean;
   };
@@ -42,13 +42,16 @@ export interface IUser {
     sms: boolean;
   };
   inAppNotification: boolean;
-  twoFAEnabled: boolean;
+  twoFAEnabled: {
+    email: boolean;
+    phoneNumber: boolean;
+  };
   twoFAToken: string;
   volume: number;
   _id?: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
+  compareSecret(candidatePassword: string): Promise<boolean>;
 }
 
 type UserModelType = Model<IUser>;
@@ -87,55 +90,75 @@ const userSchema = new Schema<IUser, UserModelType>(
       },
       default: UserRole.SUBSCRIBER,
     },
-    status: new Schema<IUser['status'], Model<IUser['status']>>({
-      status: {
-        type: String,
-        required: true,
-        enum: {
-          values: Object.values(UserStatus),
-          message: '{VALUE} is not supported',
+    status: {
+      type: new Schema<IUser['status']>({
+        status: {
+          type: String,
+          required: true,
+          enum: {
+            values: Object.values(UserStatus),
+            message: '{VALUE} is not supported',
+          },
+          default: UserStatus.PENDING,
         },
-        default: UserStatus.PENDING,
-      },
-      reason: String,
-    }),
-    idDoc: new Schema<IUser['idDoc'], Model<IUser['idDoc']>>({
-      docType: {
-        type: String,
-        enum: {
-          values: Object.values(IdDocType),
-          message: '{VALUE} is not supported',
+        reason: {
+          type: String,
+          required: function () {
+            return (
+              this.status !== UserStatus.ACTIVE &&
+              this.status !== UserStatus.PENDING
+            );
+          },
         },
-        required: true,
-      },
-      docNumber: {
-        type: String,
-        required: true,
-      },
-    }),
-    telephone: new Schema<IUser['telephone']>({
-      phoneNumber: {
-        type: String,
-        index: true,
-        unique: true,
-        required: true,
-      },
-      verified: {
-        type: Boolean,
-        default: false,
-      },
-      sms: {
-        type: Boolean,
-        default: true,
-      },
-    }),
+      }),
+      default: () => ({}),
+    },
+    idDoc: {
+      type: new Schema<IUser['idDoc'], Model<IUser['idDoc']>>({
+        docType: {
+          type: String,
+          enum: {
+            values: Object.values(IdDocType),
+            message: '{VALUE} is not supported',
+          },
+          required: true,
+        },
+        docNumber: {
+          type: String,
+          required: true,
+        },
+      }),
+      required: true,
+    },
+    telephone: {
+      type: new Schema<IUser['telephone']>({
+        phoneNumber: {
+          type: String,
+          index: true,
+          unique: true,
+          required: true,
+        },
+        verified: {
+          type: Boolean,
+          default: false,
+        },
+        sms: {
+          type: Boolean,
+          default: true,
+        },
+      }),
+      required: true,
+    },
     inAppNotification: {
       type: Boolean,
       default: true,
     },
     twoFAEnabled: {
-      type: Boolean,
-      default: false,
+      type: new Schema<IUser['twoFAEnabled']>({
+        email: { type: Boolean, default: false },
+        phoneNumber: { type: Boolean, default: false },
+      }),
+      default: () => ({}),
     },
     twoFAToken: {
       type: String,
@@ -148,10 +171,10 @@ const userSchema = new Schema<IUser, UserModelType>(
   { timestamps: true },
 );
 
-userSchema.methods.comparePassword = async function (
-  candidatePassword: string,
+userSchema.methods.compareSecret = async function (
+  candidateSecret: string,
 ): Promise<boolean> {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return await bcrypt.compare(candidateSecret, this.password || this.pin);
 };
 
 userSchema.pre('save', async function (next) {

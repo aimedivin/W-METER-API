@@ -17,6 +17,21 @@ export const successResponse = (
     data,
   });
 
+export const failureResponse = (
+  res: Response,
+  statusCode: number,
+  // failureCode: string,
+  message: string,
+  details?: unknown,
+): Response => {
+  return res.status(statusCode).json({
+    status: 'failure',
+    // failureCode,
+    message,
+    details: details || null,
+  });
+};
+
 export const errorResponse = (
   res: Response,
   errors: unknown,

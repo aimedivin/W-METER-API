@@ -1,15 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
-import { postUserSchema } from '../validators/user.validator';
+import {
+  postRegisterUserSchema,
+  postLoginUserSchema,
+} from '../validators/user.validator';
 import { successResponse } from '../utils/responses';
 import { createNewUser } from '../services/userServices/registration.service';
+import {
+  IUserLoginResponse,
+  loginUser,
+} from '../services/userServices/login.service';
 
-export const postUser = async (
+export const postRegisterUser = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { error } = postUserSchema.validate(req.body, { abortEarly: false });
+    const { error } = postRegisterUserSchema.validate(req.body, {
+      abortEarly: false,
+    });
     if (error) throw error;
 
     const { sanitizedUserInfo, statusCode, message, details } =
@@ -21,6 +30,32 @@ export const postUser = async (
       statusCode,
       message,
       details,
+    );
+    return;
+  } catch (error) {
+    return next(error);
+  }
+};
+export const postLoginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { error } = postLoginUserSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) throw error;
+
+    const { message, statusCode, data } = (await loginUser(
+      req.body,
+    )) as IUserLoginResponse;
+
+    successResponse(
+      res,
+      { ...(data as unknown as Record<string, object>) },
+      statusCode,
+      message,
     );
     return;
   } catch (error) {

@@ -5,6 +5,7 @@ export enum ErrorCodes {
   UNAUTHORIZED = 'ERR_UNAUTHORIZED',
   DATABASE = 'ERR_DATABASE',
   INTERNAL_ERROR = 'ERR_INTERNAL_SERVER_ERROR',
+  PENDING_VERIFICATION = 'ERR_PENDING_VERIFICATION',
 }
 
 export class AppError extends Error {
@@ -30,15 +31,14 @@ export class AppError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
+export class AppFailure {
+  public readonly message: string;
+  public readonly statusCode: number;
+  public readonly details: unknown;
 
-// export class DatabaseError extends AppError {
-//   constructor(message = 'Database Error', details?: unknown) {
-//     super(message, 500, true, details);
-//   }
-// }
-
-// export class ValidationError extends AppError {
-//   constructor(message: string, details?: unknown) {
-//     super(message, 400, true, details);
-//   }
-// }
+  constructor(message: string, statusCode: number, details?: unknown) {
+    this.message = message;
+    this.statusCode = statusCode;
+    this.details = details;
+  }
+}

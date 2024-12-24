@@ -1,8 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
 import mongoose from 'mongoose';
-import { AppError, ErrorCodes } from '../utils/errors';
+import { AppError, AppFailure, ErrorCodes } from '../utils/errors';
 import Joi from 'joi';
-import { errorResponse } from '../utils/responses';
+import { errorResponse, failureResponse } from '../utils/responses';
 
 const errorHandler = (
   err: Error,
@@ -51,7 +51,10 @@ const errorHandler = (
   }
 
   // unknown errors
-  if (!(customError instanceof AppError)) {
+  if (
+    !(customError instanceof AppError) &&
+    !(customError instanceof AppFailure)
+  ) {
     customError = new AppError(
       'Internal Server Error',
       500,
@@ -60,9 +63,13 @@ const errorHandler = (
     );
   }
 
-  const { statusCode, message, errorCode, details } = customError as AppError;
-
-  errorResponse(res, details, statusCode, errorCode, message);
+  if (customError instanceof AppFailure) {
+    const { statusCode, message, details } = customError as AppFailure;
+    failureResponse(res, statusCode, message, details);
+  } else {
+    const { statusCode, message, errorCode, details } = customError as AppError;
+    errorResponse(res, details, statusCode, errorCode, message);
+  }
 
   return;
 };
