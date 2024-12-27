@@ -8,13 +8,11 @@ const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ): void => {
-  let customError = err;
+  let customError: Error | AppFailure = err;
 
   // Mongoose errors
-
   if (err instanceof mongoose.Error.ValidationError) {
     customError = new AppError(
       err.message,
@@ -41,11 +39,10 @@ const errorHandler = (
       field: error.path.join(', ') || 'unknown',
       message: error.message || 'Invalid input',
     }));
-    customError = new AppError(
+    customError = new AppFailure(
       'Validation Error: Please ensure your input is correct.',
       400,
-      true,
-      ErrorCodes.INVALID_INPUT,
+      // ErrorCodes.INVALID_INPUT,
       errorDetails,
     );
   }

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User, { UserStatus } from '../../models/user.model';
-import { AppError, ErrorCodes } from '../../utils/errors';
+import { AppError, AppFailure, ErrorCodes } from '../../utils/errors';
 
 interface IUserLoginInput {
   email?: string;
@@ -63,6 +63,7 @@ export const loginUser = async ({
         data: {
           token: jwt.sign(
             {
+              userId: user._id,
               email: user.email?.email,
               phoneNumber: user.telephone.phoneNumber,
               role: user.role,
@@ -76,40 +77,43 @@ export const loginUser = async ({
         },
       };
     } else if (user.status.status === UserStatus.PENDING) {
-      throw new AppError(
+      throw new AppFailure(
         'Your account has not been verified yet. Please check your email or use your phone number to complete the verification process.',
         403,
-        true,
-        ErrorCodes.PENDING_VERIFICATION,
+        {
+          reason: 'Account verification is incomplete',
+        },
       );
     } else if (user.status.status === UserStatus.LOCKED) {
-      throw new AppError(
-        `Your account is temporarily locked ${user.status.reason && ', Due to ' + user.status.reason} . Please try again later or contact support.`,
+      throw new AppFailure(
+        `Your account is temporarily locked ${
+          user.status.reason ? ` due to ${user.status.reason}` : ''
+        }. Please try again later or contact support.`,
         403,
-        true,
-        ErrorCodes.PENDING_VERIFICATION,
+        {
+          reason: user.status.reason,
+        },
       );
     } else if (user.status.status === UserStatus.DEACTIVATED) {
-      throw new AppError(
-        `Your account has been deactivated ${user.status.reason && ', Due to ' + user.status.reason} . Please contact support for further assistance.`,
+      throw new AppFailure(
+        `Your account has been deactivated ${
+          user.status.reason ? ` due to ${user.status.reason}` : ''
+        }. Please contact support for further assistance.`,
         403,
-        true,
-        ErrorCodes.PENDING_VERIFICATION,
+        {
+          reason: user.status.reason,
+        },
       );
     } else if (user.status.status === UserStatus.BANNED) {
-      throw new AppError(
+      throw new AppFailure(
         `Your account has been permanently banned. Please contact support for further information.`,
         403,
-        true,
-        ErrorCodes.PENDING_VERIFICATION,
+        {
+          reason: user.status.reason,
+        },
       );
     }
   } else {
-    throw new AppError(
-      'Invalid email or password.',
-      401,
-      true,
-      ErrorCodes.INVALID_INPUT,
-    );
+    throw new AppFailure('Invalid email or password.', 401);
   }
 };
