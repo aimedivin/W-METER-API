@@ -33,7 +33,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.1",
+    "@types/node": "^22.10.2",
     "@types/winston": "^2.4.4",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",

@@ -1,15 +1,16 @@
 {
   "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "noEmitOnError": true,
-    "allowJs": true
+    "allowJs": true,
   },
   "include": [
-    "src/**/*",
-    "eslint.config.mjs"
+    "src/***/**/*",
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "eslint.config.mjs",
   ]
 }

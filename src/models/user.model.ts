@@ -137,6 +137,7 @@ const userSchema = new Schema<IUser, UserModelType>(
           index: true,
           unique: true,
           required: true,
+          immutable: true,
         },
         verified: {
           type: Boolean,

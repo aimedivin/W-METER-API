@@ -3,11 +3,13 @@ import mongoose from 'mongoose';
 import { AppError, AppFailure, ErrorCodes } from '../utils/errors';
 import Joi from 'joi';
 import { errorResponse, failureResponse } from '../utils/responses';
+import { JsonWebTokenError } from 'jsonwebtoken';
 
 const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ): void => {
   let customError: Error | AppFailure = err;
@@ -45,6 +47,37 @@ const errorHandler = (
       // ErrorCodes.INVALID_INPUT,
       errorDetails,
     );
+  }
+  // jwt errors
+  if (err instanceof JsonWebTokenError) {
+    switch (err.name) {
+      case 'TokenExpiredError':
+        customError = new AppError(
+          'Token has expired. Please log in again.',
+          401,
+          true,
+          ErrorCodes.EXPIRED_TOKEN,
+          err.stack,
+        );
+        break;
+      case 'JsonWebTokenError':
+        customError = new AppError(
+          'Invalid token. Please log in again.',
+          401,
+          true,
+          ErrorCodes.INVALID_TOKEN,
+          err.stack,
+        );
+        break;
+      default:
+        customError = new AppError(
+          'An authentication error occurred.',
+          401,
+          true,
+          ErrorCodes.UNAUTHORIZED,
+          err.stack,
+        );
+    }
   }
 
   // unknown errors

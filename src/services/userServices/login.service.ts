@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
-import User, { UserStatus } from '../../models/user.model';
+import User from '../../models/user.model';
 import { AppError, AppFailure, ErrorCodes } from '../../utils/errors';
+import { userStatusChecker } from '../../helpers/userLogin';
 
 interface IUserLoginInput {
   email?: string;
@@ -40,7 +41,7 @@ export const loginUser = async ({
 
   const isValid = await user.compareSecret(password || pin!);
   if (isValid) {
-    if (user.status.status === UserStatus.ACTIVE) {
+    if (userStatusChecker(user.status)) {
       if (user.twoFAEnabled.email || user.twoFAEnabled.phoneNumber) {
         const channels = [
           user.twoFAEnabled.email && 'email',
@@ -76,42 +77,6 @@ export const loginUser = async ({
           twoFactorAuthEnabled: false,
         },
       };
-    } else if (user.status.status === UserStatus.PENDING) {
-      throw new AppFailure(
-        'Your account has not been verified yet. Please check your email or use your phone number to complete the verification process.',
-        403,
-        {
-          reason: 'Account verification is incomplete',
-        },
-      );
-    } else if (user.status.status === UserStatus.LOCKED) {
-      throw new AppFailure(
-        `Your account is temporarily locked ${
-          user.status.reason ? ` due to ${user.status.reason}` : ''
-        }. Please try again later or contact support.`,
-        403,
-        {
-          reason: user.status.reason,
-        },
-      );
-    } else if (user.status.status === UserStatus.DEACTIVATED) {
-      throw new AppFailure(
-        `Your account has been deactivated ${
-          user.status.reason ? ` due to ${user.status.reason}` : ''
-        }. Please contact support for further assistance.`,
-        403,
-        {
-          reason: user.status.reason,
-        },
-      );
-    } else if (user.status.status === UserStatus.BANNED) {
-      throw new AppFailure(
-        `Your account has been permanently banned. Please contact support for further information.`,
-        403,
-        {
-          reason: user.status.reason,
-        },
-      );
     }
   } else {
     throw new AppFailure('Invalid email or password.', 401);
