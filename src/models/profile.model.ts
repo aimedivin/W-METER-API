@@ -1,6 +1,6 @@
 import { model, Model, Schema, Types } from 'mongoose';
 
-interface IProfile {
+export interface IProfile {
   _id?: Types.ObjectId;
   fullName: string;
   firstName: string;
@@ -45,10 +45,15 @@ const profileSchema = new Schema<IProfile, ProfileModelType>(
     user: {
       type: Schema.Types.ObjectId,
       required: true,
+      unique: true,
       ref: 'User',
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
 
 profileSchema.virtual('fullName').get(function () {

@@ -1,5 +1,6 @@
 import { Model, model, Schema, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
+import { IProfile } from './profile.model';
 
 export enum IdDocType {
   ID_CARD = 'ID_CARD',
@@ -21,6 +22,7 @@ export enum UserStatus {
 }
 
 export interface IUser {
+  _id?: Types.ObjectId;
   email?: {
     email: string;
     alerts: boolean;
@@ -41,6 +43,7 @@ export interface IUser {
     verified: boolean;
     sms: boolean;
   };
+  profile: IProfile;
   inAppNotification: boolean;
   twoFAEnabled: {
     email: boolean;
@@ -48,7 +51,10 @@ export interface IUser {
   };
   twoFAToken: string;
   volume: number;
-  _id?: Types.ObjectId;
+  isDeleted: {
+    isDeleted: boolean;
+    deletedAt: Date | null;
+  };
   createdAt?: Date;
   updatedAt?: Date;
   compareSecret(candidatePassword: string): Promise<boolean>;
@@ -72,12 +78,14 @@ const userSchema = new Schema<IUser, UserModelType>(
     }),
     password: {
       type: String,
+      select: false,
       required: function (this: IUser): boolean {
         return !this.pin;
       },
     },
     pin: {
       type: String,
+      select: false,
       required: function (this: IUser): boolean {
         return !this.password;
       },
@@ -163,13 +171,33 @@ const userSchema = new Schema<IUser, UserModelType>(
     },
     twoFAToken: {
       type: String,
+      select: false,
     },
     volume: {
       type: Number,
       required: true,
     },
+    isDeleted: {
+      type: new Schema<IUser['isDeleted']>({
+        isDeleted: {
+          type: Boolean,
+          default: false,
+        },
+        deletedAt: {
+          type: Date,
+          default: function () {
+            return this.isDeleted ? new Date() : null;
+          },
+        },
+      }),
+      default: () => ({}),
+    },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
 
 userSchema.methods.compareSecret = async function (
@@ -184,6 +212,13 @@ userSchema.pre('save', async function (next) {
     12,
   );
   return next();
+});
+
+userSchema.virtual('profile', {
+  ref: 'Profile',
+  foreignField: 'user',
+  localField: '_id',
+  justOne: true,
 });
 
 const User = model<IUser, UserModelType>('User', userSchema);

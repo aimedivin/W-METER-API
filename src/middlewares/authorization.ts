@@ -50,12 +50,9 @@ const authorization = async (
     const user = await User.findById(decodedToken.userId);
 
     if (!user) {
-      throw new AppError(
-        'User not found.',
-        404,
-        true,
-        ErrorCodes.RESOURCE_NOT_FOUND,
-      );
+      throw new AppFailure('User not found.', 404, {
+        cause: 'The user ID in the token does not exist.',
+      });
     }
     if (userStatusChecker(user.status))
       req.user = {

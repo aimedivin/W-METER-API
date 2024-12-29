@@ -28,7 +28,7 @@ export const loginUser = async ({
 }: IUserLoginInput): Promise<IUserLoginResponse | undefined> => {
   const user = await User.findOne({
     $or: [{ 'telephone.phoneNumber': phoneNumber }, { 'email.email': email }],
-  });
+  }).select(['+password', '+pin']);
 
   if (!user) {
     throw new AppError(
