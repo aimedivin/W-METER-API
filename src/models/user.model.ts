@@ -7,12 +7,6 @@ export enum IdDocType {
   PASSPORT = 'PASSPORT',
 }
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  MANAGER = 'MANAGER',
-  SUBSCRIBER = 'SUBSCRIBER',
-}
-
 export enum UserStatus {
   ACTIVE = 'ACTIVE', // Account is fully functional
   PENDING = 'PENDING', // The account is awaiting verification
@@ -22,14 +16,14 @@ export enum UserStatus {
 }
 
 export interface IUser {
-  _id?: Types.ObjectId;
+  _id: Types.ObjectId;
   email?: {
     email: string;
     alerts: boolean;
   };
   password?: string;
   pin?: string;
-  role: UserRole;
+  role: Types.ObjectId;
   idDoc: {
     docType: IdDocType;
     docNumber: string;
@@ -91,12 +85,9 @@ const userSchema = new Schema<IUser, UserModelType>(
       },
     },
     role: {
-      type: String,
-      enum: {
-        values: Object.values(UserRole),
-        message: '{VALUE} is not supported',
-      },
-      default: UserRole.SUBSCRIBER,
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Role',
     },
     status: {
       type: new Schema<IUser['status']>({
@@ -208,7 +199,7 @@ userSchema.methods.compareSecret = async function (
 
 userSchema.pre('save', async function (next) {
   this[this.password ? 'password' : 'pin'] = await bcrypt.hash(
-    this.password || this.pin || '',
+    this.password || this.pin!,
     12,
   );
   return next();

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError, AppFailure, ErrorCodes } from '../utils/errors';
 import jwt from 'jsonwebtoken';
-import User, { UserRole } from '../models/user.model';
+import User from '../models/user.model';
 import { userStatusChecker } from '../helpers/userLogin';
+import { IRole } from '../models/role.model';
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
@@ -10,7 +11,7 @@ declare global {
       user?: {
         id: string;
         email?: string;
-        role: UserRole;
+        role: IRole;
         phoneNumber: string;
       };
     }
@@ -20,7 +21,7 @@ interface IJwtPayload extends jwt.JwtPayload {
   userId: string;
   email: string;
   phoneNumber: string;
-  role: UserRole;
+  role: string;
   iat: number;
   exp: number;
 }
@@ -47,7 +48,9 @@ const authorization = async (
     const decodedToken = jwt.verify(token, jwtSecret) as IJwtPayload;
 
     // User Authorization
-    const user = await User.findById(decodedToken.userId);
+    const user = await User.findById(decodedToken.userId).populate<{
+      role: IRole;
+    }>('role');
 
     if (!user) {
       throw new AppFailure('User not found.', 404, {
@@ -61,7 +64,6 @@ const authorization = async (
         phoneNumber: user.telephone.phoneNumber,
         role: user.role,
       };
-
     next();
   } catch (error) {
     next(error);

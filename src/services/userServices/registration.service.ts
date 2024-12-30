@@ -3,6 +3,7 @@ import User from '../../models/user.model';
 import { AppError, ErrorCodes } from '../../utils/errors';
 import generateOTP from '../../utils/generateOTP';
 import sendSms from '../../utils/sendSms';
+import Role from '../../models/role.model';
 
 interface IUserInput {
   email?: {
@@ -42,6 +43,19 @@ export const createNewUser = async ({
     );
   }
 
+  const role = await Role.findOne({ isDefault: true });
+  if (!role) {
+    throw new AppError(
+      'Role not found, Please contact support for further information.',
+      404,
+      true,
+      ErrorCodes.RESOURCE_NOT_FOUND,
+      {
+        description: 'No default roles available to assign to the user.',
+      },
+    );
+  }
+
   const otp = generateOTP();
   const jwtSecret = process.env.JWT_SECRET;
   const twoFAToken = jwt.sign({ otp }, jwtSecret!, { expiresIn: '30m' });
@@ -49,6 +63,7 @@ export const createNewUser = async ({
   const newUser = await User.create({
     'telephone.phoneNumber': phoneNumber,
     email: email,
+    role: role._id,
     pin,
     password,
     idDoc: identificationDoc,
