@@ -10,8 +10,6 @@ import {
   postUserProfile,
   putUserProfile,
 } from '../controllers/profile.controller';
-import accessController from '../middlewares/accessController';
-import { Permissions } from '../models/role.model';
 
 const router = Router();
 
@@ -25,12 +23,7 @@ router.post('/login', postLoginUser);
 router.get('/', authorization, getUser);
 
 // USER PROFILE ROUTES
-router.post(
-  '/profile',
-  authorization,
-  accessController([Permissions.ADMIN]),
-  postUserProfile,
-);
+router.post('/profile', authorization, postUserProfile);
 router.put('/profile', authorization, putUserProfile);
 router.get('/profile', authorization, getUserProfile);
 

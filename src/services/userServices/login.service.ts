@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../../models/user.model';
 import { AppError, AppFailure, ErrorCodes } from '../../utils/errors';
-import { userStatusChecker } from '../../helpers/userLogin';
+import { userStatusChecker } from '../../helpers/userStatusChecker';
 
 interface IUserLoginInput {
   email?: string;
@@ -31,12 +31,7 @@ export const loginUser = async ({
   }).select(['+password', '+pin']);
 
   if (!user) {
-    throw new AppError(
-      'User not found.',
-      404,
-      true,
-      ErrorCodes.RESOURCE_NOT_FOUND,
-    );
+    throw new AppFailure('User not found.', 404);
   }
 
   const isValid = await user.compareSecret(password || pin!);

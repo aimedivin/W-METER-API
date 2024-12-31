@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError, AppFailure, ErrorCodes } from '../utils/errors';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
-import { userStatusChecker } from '../helpers/userLogin';
+import { userStatusChecker } from '../helpers/userStatusChecker';
 import { IRole } from '../models/role.model';
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
