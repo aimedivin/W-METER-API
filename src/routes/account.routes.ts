@@ -4,7 +4,7 @@ import {
   postLoginUser,
   getUser,
 } from '../controllers/user.controller';
-import authorization from '../middlewares/authorization';
+import authorization from '../middlewares/authorize';
 import {
   getUserProfile,
   postUserProfile,

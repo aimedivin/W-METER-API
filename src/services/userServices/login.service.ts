@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../../models/user.model';
-import { AppError, AppFailure, ErrorCodes } from '../../utils/errors';
+import { AppFailure } from '../../utils/errors';
 import { userStatusChecker } from '../../helpers/userStatusChecker';
 
 interface IUserLoginInput {

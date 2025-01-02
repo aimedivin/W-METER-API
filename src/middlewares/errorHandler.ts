@@ -90,6 +90,7 @@ const errorHandler = (
       500,
       false,
       ErrorCodes.INTERNAL_ERROR,
+      { Error: err.stack },
     );
   }
 

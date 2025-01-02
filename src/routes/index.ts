@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { successResponse } from '../utils/responses';
-import userRoutes from './user.routes';
+import accountRoutes from './account.routes';
 import otpRoutes from './otp.routes';
+import roleRoutes from './role.routes';
 
 const router = Router();
 
@@ -16,10 +17,16 @@ router.get('/', (req: Request, res: Response) => {
   return;
 });
 
-// Routes to handle user related requests
-router.use('/user', userRoutes);
+// Routes to handle users related requests
+router.use('/users', accountRoutes);
+
+// Routes to handle user ACCOUNT related requests
+router.use('/account', accountRoutes);
 
 // Routes to handle otp related requests
 router.use('/otp', otpRoutes);
+
+// Routes to handle platform roles
+router.use('/roles', roleRoutes);
 
 export default router;

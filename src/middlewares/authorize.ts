@@ -26,11 +26,7 @@ interface IJwtPayload extends jwt.JwtPayload {
   exp: number;
 }
 
-const authorization = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const authorize = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Decoding Token
     const token = req.headers['authorization']?.split(' ')[1];
@@ -69,4 +65,4 @@ const authorization = async (
     next(error);
   }
 };
-export default authorization;
+export default authorize;

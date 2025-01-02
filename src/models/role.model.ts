@@ -11,7 +11,7 @@ export enum Permissions {
 }
 
 export interface IRole {
-  _id: Types.ObjectId;
+  _id?: Types.ObjectId;
   name: string;
   permission: string;
   isDefault?: boolean;
